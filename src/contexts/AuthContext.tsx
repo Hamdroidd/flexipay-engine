@@ -19,10 +19,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      // Seed demo data for new users
+      if (event === "SIGNED_IN" && session) {
+        supabase.functions.invoke("seed-user-data").catch(() => {});
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
